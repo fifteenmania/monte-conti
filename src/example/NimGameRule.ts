@@ -11,7 +11,7 @@ export const nimGameRule: GameRule<number> = (function () {
     const defaultGameSetting: NimGameSetting = {
         maxCall: 3,
         numEnd: 31,
-        numPeople: 3,
+        numPeople: 2,
         minCall: 1
     }
 

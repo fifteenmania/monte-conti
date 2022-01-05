@@ -8,6 +8,11 @@ export interface GameRule<GameState> {
     getRandomChild: (state: GameState) => GameState| undefined;
 }
 
+function findMaxIdx(arr: number[]) {
+    const maxValue = arr.reduce((maxVal, curVal) => maxVal < curVal? curVal: maxVal, 0);
+    return arr.findIndex((value) => value === maxValue);
+}
+
 export class SearchNode<GameState> {
     gameState: GameState;
     winCount: number[];
@@ -39,6 +44,10 @@ export class MonteCarloSearchGraph<GameState> {
         this.root = new SearchNode(initaialState, this.gameRule.numPlayer);
         this.searchDict = new Map<string, SearchNode<GameState>>();
         this.searchDict.set(gameRule.getKey(initaialState), this.root);
+    }
+
+    getNode(state: GameState): SearchNode<GameState>|undefined {
+        return this.searchDict.get(this.gameRule.getKey(state));
     }
 
     makeSearchNode(state: GameState): SearchNode<GameState> {
@@ -111,15 +120,20 @@ export class MonteCarloSearchGraph<GameState> {
         }
     }
 
-    monteCarloSearch(maxIter: number) {
+    monteCarloSearch(maxIter: number): GameState {
         if (this.root.isLeaf()) {
+            if (this.gameRule.isEnd(this.root.gameState)) {
+                return this.root.gameState
+            } 
             this.appendChildren(this.root);
         }
         for (var iter=0; iter < maxIter; iter++) {
             console.log(`iteration ${iter} ------`)
-            this.monteCarloSearchRec(this.root)
+            this.monteCarloSearchRec(this.root);
         }
-        return this.root.children.map((item) => item.winCount)
+        const winRate = this.root.children.map((item) => item.winRate[0])
+        const maxIdx = findMaxIdx(winRate);
+        return this.root.children[maxIdx].gameState;
     }
 }
 
