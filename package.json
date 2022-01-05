@@ -1,10 +1,11 @@
 {
   "name": "monte-carlo",
   "version": "0.1.0",
-  "description": "js monte carlo tree search implementation for multiplayer game strategy",
+  "description": "Monte-Carlo acyclic graph search for multiplayer game strategy.",
   "main": "dist/index.js",
   "scripts": {
-    "start": "ts-node src/GameState.ts",
+    "start": "node dist/index.js",
+    "prelab": "ts-node src/example/NimGameRule.test.ts",
     "test": "mocha src/**/*.test.ts -r ts-node/register",
     "prebuild": "rm -rf dist",
     "build": "tsc"
