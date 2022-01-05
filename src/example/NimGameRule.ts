@@ -17,6 +17,10 @@ export const nimGameRule: GameRule<number> = (function () {
 
     const gameSetting = defaultGameSetting;
 
+    function getKey(state: number) {
+        return state.toString();
+    }
+
     function nextPlayer(player: number) {
         return (player + 1)%(gameSetting.numPeople);
     }
@@ -62,6 +66,7 @@ export const nimGameRule: GameRule<number> = (function () {
 
     return {
         numPlayer: gameSetting.numPeople,
+        getKey,
         nextPlayer,
         prevPlayer,
         isEnd,

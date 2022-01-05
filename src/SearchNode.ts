@@ -1,5 +1,6 @@
 export interface GameRule<GameState> {
     numPlayer: number;
+    getKey: (state: GameState) => string;
     nextPlayer: (player: number) => number;
     prevPlayer: (player: number) => number;
     isEnd: (state: GameState) => boolean;
@@ -32,19 +33,19 @@ export class SearchNode<GameState> {
 export class MonteCarloSearchGraph<GameState> {
     root: SearchNode<GameState>;
     gameRule: GameRule<GameState>;
-    searchDict: Map<GameState, SearchNode<GameState>>;
+    searchDict: Map<string, SearchNode<GameState>>;
     constructor(initaialState: GameState, gameRule: GameRule<GameState>) {
         this.gameRule = gameRule;
         this.root = new SearchNode(initaialState, this.gameRule.numPlayer);
-        this.searchDict = new Map<GameState, SearchNode<GameState>>();
-        this.searchDict.set(initaialState, this.root);
+        this.searchDict = new Map<string, SearchNode<GameState>>();
+        this.searchDict.set(gameRule.getKey(initaialState), this.root);
     }
 
     makeSearchNode(state: GameState): SearchNode<GameState> {
-        if (this.searchDict.has(state)) {
+        if (this.searchDict.has(this.gameRule.getKey(state))) {
             // ?? root is due to typescript compiler bug.
             // It never become nullish but the compiler don't know.
-            return this.searchDict.get(state) ?? this.root;
+            return this.searchDict.get(this.gameRule.getKey(state)) ?? this.root;
         } else {
             return new SearchNode(state, this.gameRule.numPlayer);
         }
@@ -63,7 +64,7 @@ export class MonteCarloSearchGraph<GameState> {
             return Infinity;
         }
         const confidence = Math.sqrt(2*Math.log2(parentNode.visitCount)/childNode.visitCount)
-        const valueScore = childNode.winRate[this.gameRule.prevPlayer(0)]
+        const valueScore = childNode.winRate[0];
         return valueScore + confidence;
     }
 
@@ -111,11 +112,14 @@ export class MonteCarloSearchGraph<GameState> {
     }
 
     monteCarloSearch(maxIter: number) {
+        if (this.root.isLeaf()) {
+            this.appendChildren(this.root);
+        }
         for (var iter=0; iter < maxIter; iter++) {
             console.log(`iteration ${iter} ------`)
             this.monteCarloSearchRec(this.root)
         }
-        return this.root.children.map((item) => item.winRate)
+        return this.root.children.map((item) => item.winCount)
     }
 }
 
