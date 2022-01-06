@@ -1,4 +1,4 @@
-import { GameRule } from "../SearchNode";
+import { GameRule } from "../GameRule";
 
 export interface NimGameSetting {
     maxCall: number;
@@ -11,7 +11,7 @@ export const nimGameRule: GameRule<number> = (function () {
     const defaultGameSetting: NimGameSetting = {
         maxCall: 3,
         numEnd: 31,
-        numPeople: 2,
+        numPeople: 3,
         minCall: 1
     }
 
