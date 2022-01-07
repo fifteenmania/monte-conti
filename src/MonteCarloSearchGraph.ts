@@ -6,6 +6,7 @@ function findMaxIdx(arr: number[]) {
     return arr.findIndex((value) => value === maxValue);
 }
 
+
 export class MonteCarloSearchGraph<GameState> {
     root: SearchNode<GameState>;
     gameRule: GameRule<GameState>;
@@ -15,6 +16,7 @@ export class MonteCarloSearchGraph<GameState> {
         this.root = new SearchNode(initaialState, this.gameRule.numPlayer);
         this.searchDict = new Map<string, SearchNode<GameState>>();
         this.searchDict.set(gameRule.getKey(initaialState), this.root);
+        this.appendChildren(this.root);
     }
 
     getNode(state: GameState): SearchNode<GameState>|undefined {
@@ -33,6 +35,10 @@ export class MonteCarloSearchGraph<GameState> {
         }
     }
 
+    updateRoot(state: GameState) {
+        this.root = this.makeSearchNode(state);
+    }
+
     appendChildren(searchNode: SearchNode<GameState>) {
         const children = this.gameRule.getChildren(searchNode.gameState);
         for (const childState of children) {
@@ -46,7 +52,7 @@ export class MonteCarloSearchGraph<GameState> {
             return Infinity;
         }
         const confidence = Math.sqrt(2*Math.log2(parentNode.visitCount)/childNode.visitCount)
-        const valueScore = childNode.winRate[0];
+        const valueScore = childNode.rewardCount[0]/childNode.visitCount;
         return valueScore + confidence;
     }
 
@@ -56,56 +62,59 @@ export class MonteCarloSearchGraph<GameState> {
         return parentNode.children[maxIdx];
     }
 
-    // return player who win
-    randomPlay(state: GameState, player: number): number {
+    // Return final state and its depth
+    randomPlayRec(state: GameState, depth: number): [GameState, number] {
         const childState = this.gameRule.getRandomChild(state);
         if (childState === undefined) {
-            return player;
+            return [state, depth];
         } else {
-            return this.randomPlay(childState, this.gameRule.nextPlayer(player))
+            return this.randomPlayRec(childState, depth+1);
         }
     }
 
-    monteCarloSearchRec(curNode: SearchNode<GameState>): number {
+    randomPlay(state: GameState): [GameState, number] {
+        return this.randomPlayRec(state, 0);
+    }
+
+    // Return final game state(end) and its depth from caller.
+    monteCarloSearchRec(curNode: SearchNode<GameState>): [GameState, number] {
         if (curNode.isLeaf()) {
             if (this.gameRule.isEnd(curNode.gameState)) {
-                console.log(`Selection (${curNode.gameState}): reached end.`)
-                curNode.winCount[0] += 1;
-                curNode.visitCount += 1;
-                return this.gameRule.nextPlayer(0);
+                const reward = this.gameRule.getReward(curNode.gameState);
+                curNode.addReward(reward);
+                console.log(`Selection (${curNode.gameState}): Reached end. Get ${reward}.`)
+                return [curNode.gameState, 1];
             } else {
                 this.appendChildren(curNode);
                 console.log(`Expansion (${curNode.gameState})`)
-                const winPlayer = this.randomPlay(curNode.gameState, 0);
-                console.log(`Rollout (${curNode.gameState}): player ${winPlayer} win`)
-                curNode.winCount[winPlayer] += 1;
-                curNode.visitCount += 1;
-                return this.gameRule.nextPlayer(winPlayer);
+                const [finalState, depth] = this.randomPlay(curNode.gameState);
+                const reward = this.gameRule.getPrevReward(finalState, depth);
+                curNode.addReward(reward);
+                console.log(`Rollout (${curNode.gameState}): End at ${finalState}. Get ${reward}`)
+                return [finalState, depth+1];
             }
         } else {
             const nextNode = this.getNextNode(curNode);
-            console.log(`Selection (${curNode.gameState}): search ${nextNode.gameState}`)
-            const winPlayer = this.monteCarloSearchRec(nextNode);
-            console.log(`Backprop (${curNode.gameState}): player ${winPlayer} win`)
-            curNode.winCount[winPlayer] += 1;
-            curNode.visitCount += 1;
-            return this.gameRule.nextPlayer(winPlayer);
+            console.log(`Selection (${curNode.gameState}): Search ${nextNode.gameState}`)
+            const [finalState, depth] = this.monteCarloSearchRec(nextNode);
+            const reward = this.gameRule.getPrevReward(finalState, depth);
+            curNode.addReward(reward);
+            console.log(`Backprop to (${curNode.gameState}): From ${finalState} of depth ${depth}. Get ${reward}`)
+            return [finalState, depth+1];
         }
     }
 
     monteCarloSearch(maxIter: number): GameState {
-        if (this.root.isLeaf()) {
-            if (this.gameRule.isEnd(this.root.gameState)) {
-                return this.root.gameState
-            } 
-            this.appendChildren(this.root);
+        if (this.gameRule.isEnd(this.root.gameState)) {
+            // Trivial case. (root is gameover)
+            return this.root.gameState
         }
         for (var iter=0; iter < maxIter; iter++) {
-            console.log(`iteration ${iter} ------`)
+            console.log(`iteration ${iter+1} ---------`)
             this.monteCarloSearchRec(this.root);
         }
-        const winRate = this.root.children.map((item) => item.winRate[0])
-        const maxIdx = findMaxIdx(winRate);
+        const rewardRate = this.root.children.map((item) => item.rewardRate[0])
+        const maxIdx = findMaxIdx(rewardRate);
         return this.root.children[maxIdx].gameState;
     }
 }

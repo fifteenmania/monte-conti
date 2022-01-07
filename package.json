@@ -1,7 +1,7 @@
 {
-  "name": "monte-carlo",
+  "name": "monte-conti",
   "version": "0.1.0",
-  "description": "Monte-Carlo acyclic graph search for multiplayer game strategy.",
+  "description": "Monte-Carlo acyclic graph search algorithm for any kind of multiplayer game.",
   "main": "dist/index.js",
   "scripts": {
     "start": "node dist/index.js",

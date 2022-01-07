@@ -21,11 +21,11 @@ export const nimGameRule: GameRule<number> = (function () {
         return state.toString();
     }
 
-    function nextPlayer(player: number) {
+    function nextPlayer(state: number, player: number) {
         return (player + 1)%(gameSetting.numPeople);
     }
 
-    function prevPlayer(player: number) {
+    function prevPlayer(state: number, player: number) {
         return (player - 1 + gameSetting.numPeople)%gameSetting.numPeople;
     }
 
@@ -35,6 +35,26 @@ export const nimGameRule: GameRule<number> = (function () {
     
     function isValid(state: number): boolean {
         return state <= gameSetting.numEnd;
+    }
+
+    function getReward(state: number): number[] {
+        const reward = new Array(gameSetting.numPeople).fill(0);
+        if (state === gameSetting.numEnd) {
+            reward[0] = 1;
+            return reward;
+        } else {
+            return reward;
+        }
+    }
+
+    function getPrevReward(state: number, turns: number): number[] {
+        const reward = new Array(gameSetting.numPeople).fill(0);
+        if (state === gameSetting.numEnd) {
+            reward[(turns)%gameSetting.numPeople] = 1;
+            return reward;
+        } else {
+            return reward;
+        }
     }
 
     // return all children states
@@ -70,6 +90,8 @@ export const nimGameRule: GameRule<number> = (function () {
         nextPlayer,
         prevPlayer,
         isEnd,
+        getReward,
+        getPrevReward,
         getChildren,
         getRandomChild
     }

@@ -3,8 +3,8 @@ import { MonteCarloSearchGraph } from "../MonteCarloSearchGraph";
 
 const sg = new MonteCarloSearchGraph(28, nimGameRule);
 
-const winRates = sg.monteCarloSearch(100);
-console.log(winRates);
+const pick = sg.monteCarloSearch(1000);
+console.log(pick);
 
+console.log(sg.root.children.map((item) => item.rewardRate))
 console.log(sg.root.children.map((item) => sg.getChildUcbScore(sg.root, item)))
-console.log(sg.root.children.map((item) => item.winRate))
