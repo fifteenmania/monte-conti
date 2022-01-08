@@ -7,39 +7,46 @@ export interface NimGameSetting {
     minCall: number;
 }
 
-export const nimGameRule: GameRule<number> = (function () {
-    const defaultGameSetting: NimGameSetting = {
-        maxCall: 3,
-        numEnd: 31,
-        numPeople: 3,
-        minCall: 1
+const defaultGameSetting: NimGameSetting = {
+    maxCall: 3,
+    numEnd: 31,
+    numPeople: 3,
+    minCall: 1
+}
+
+export class NimGameRule implements GameRule<number> {    
+    gameSetting: NimGameSetting;
+    constructor(gameSetting = defaultGameSetting) {
+        this.gameSetting = gameSetting;
     }
 
-    const gameSetting = defaultGameSetting;
+    get numPlayer() {
+        return this.gameSetting.numPeople;
+    }
 
-    function getKey(state: number) {
+    getKey(state: number) {
         return state.toString();
     }
 
-    function nextPlayer(state: number, player: number) {
-        return (player + 1)%(gameSetting.numPeople);
+    nextPlayer(state: number, player: number) {
+        return (player + 1)%(this.gameSetting.numPeople);
     }
 
-    function prevPlayer(state: number, player: number) {
-        return (player - 1 + gameSetting.numPeople)%gameSetting.numPeople;
+    prevPlayer(state: number, player: number) {
+        return (player - 1 + this.gameSetting.numPeople)%this.gameSetting.numPeople;
     }
 
-    function isEnd(state: number): boolean {
-        return state === gameSetting.numEnd;
+    isEnd(state: number): boolean {
+        return state === this.gameSetting.numEnd;
     }
     
-    function isValid(state: number): boolean {
-        return state <= gameSetting.numEnd;
+    isValid(state: number): boolean {
+        return state <= this.gameSetting.numEnd;
     }
 
-    function getReward(state: number): number[] {
-        const reward = new Array(gameSetting.numPeople).fill(0);
-        if (state === gameSetting.numEnd) {
+    getReward(state: number): number[] {
+        const reward = new Array(this.gameSetting.numPeople).fill(0);
+        if (state === this.gameSetting.numEnd) {
             reward[0] = 1;
             return reward;
         } else {
@@ -47,10 +54,10 @@ export const nimGameRule: GameRule<number> = (function () {
         }
     }
 
-    function getPrevReward(state: number, turns: number): number[] {
-        const reward = new Array(gameSetting.numPeople).fill(0);
-        if (state === gameSetting.numEnd) {
-            reward[(turns)%gameSetting.numPeople] = 1;
+    getPrevReward(state: number, turns: number): number[] {
+        const reward = new Array(this.gameSetting.numPeople).fill(0);
+        if (state === this.gameSetting.numEnd) {
+            reward[(turns)%this.gameSetting.numPeople] = 1;
             return reward;
         } else {
             return reward;
@@ -58,13 +65,13 @@ export const nimGameRule: GameRule<number> = (function () {
     }
 
     // return all children states
-    function getChildren(state: number): number[] {
+    getChildren(state: number): number[] {
         const result: number[] = [];
-        if (isEnd(state)) {
+        if (this.isEnd(state)) {
             return result;
         }
-        for (var newState = state + gameSetting.minCall;
-                newState <= state + gameSetting.maxCall && newState <= gameSetting.numEnd;
+        for (var newState = state + this.gameSetting.minCall;
+                newState <= state + this.gameSetting.maxCall && newState <= this.gameSetting.numEnd;
                 newState++) {
             result.push(newState);
         }
@@ -72,29 +79,17 @@ export const nimGameRule: GameRule<number> = (function () {
     }
 
     // return one random child state
-    function getRandomChild(state: number): number|undefined {
-        if (isEnd(state)) {
+    getRandomChild(state: number): number|undefined {
+        if (this.isEnd(state)) {
             return;
         }
-        const pickMax = Math.min(state + gameSetting.maxCall,
-                gameSetting.numEnd);
-        const pickMin = Math.min(state + gameSetting.minCall,
-                gameSetting.numEnd);
+        const pickMax = Math.min(state + this.gameSetting.maxCall,
+                this.gameSetting.numEnd);
+        const pickMin = Math.min(state + this.gameSetting.minCall,
+                this.gameSetting.numEnd);
         const pickState = pickMin + Math.floor((pickMax - pickMin + 1)*Math.random())
         return pickState;
     }
-
-    return {
-        numPlayer: gameSetting.numPeople,
-        getKey,
-        nextPlayer,
-        prevPlayer,
-        isEnd,
-        getReward,
-        getPrevReward,
-        getChildren,
-        getRandomChild
-    }
-})();
+}
 
 
