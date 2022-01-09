@@ -1,2 +1,1 @@
-import { nimGameRule } from "./example/NimGameRule";
-import { MonteCarloSearchGraph } from "./MonteCarloSearchGraph";
+export { MonteCarloSearchGraph } from "./MonteCarloSearchGraph";

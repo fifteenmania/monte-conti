@@ -1,27 +1,20 @@
 import { GameRule } from "../GameRule";
 
-export interface NimGameSetting {
+
+export class NimGameRule implements GameRule<number> {
     maxCall: number;
+    numPlayer: number;
     numEnd: number;
-    numPeople: number;
     minCall: number;
-}
-
-const defaultGameSetting: NimGameSetting = {
-    maxCall: 3,
-    numEnd: 31,
-    numPeople: 3,
-    minCall: 1
-}
-
-export class NimGameRule implements GameRule<number> {    
-    gameSetting: NimGameSetting;
-    constructor(gameSetting = defaultGameSetting) {
-        this.gameSetting = gameSetting;
+    constructor(numPlayer: number, maxCall: number, numEnd: number, minCall: number = 1) {
+        this.maxCall = maxCall;
+        this.numPlayer = numPlayer;
+        this.numEnd = numEnd;
+        this.minCall = minCall;
     }
 
-    get numPlayer() {
-        return this.gameSetting.numPeople;
+    get initialState() {
+        return 0;
     }
 
     getKey(state: number) {
@@ -29,24 +22,24 @@ export class NimGameRule implements GameRule<number> {
     }
 
     nextPlayer(state: number, player: number) {
-        return (player + 1)%(this.gameSetting.numPeople);
+        return (player + 1)%(this.numPlayer);
     }
 
     prevPlayer(state: number, player: number) {
-        return (player - 1 + this.gameSetting.numPeople)%this.gameSetting.numPeople;
+        return (player - 1 + this.numPlayer)%this.numPlayer;
     }
 
     isEnd(state: number): boolean {
-        return state === this.gameSetting.numEnd;
+        return state === this.numEnd;
     }
     
     isValid(state: number): boolean {
-        return state <= this.gameSetting.numEnd;
+        return state <= this.numEnd;
     }
 
     getReward(state: number): number[] {
-        const reward = new Array(this.gameSetting.numPeople).fill(0);
-        if (state === this.gameSetting.numEnd) {
+        const reward = new Array(this.numPlayer).fill(0);
+        if (state === this.numEnd) {
             reward[0] = 1;
             return reward;
         } else {
@@ -55,13 +48,11 @@ export class NimGameRule implements GameRule<number> {
     }
 
     getPrevReward(state: number, turns: number): number[] {
-        const reward = new Array(this.gameSetting.numPeople).fill(0);
-        if (state === this.gameSetting.numEnd) {
-            reward[(turns)%this.gameSetting.numPeople] = 1;
-            return reward;
-        } else {
-            return reward;
-        }
+        const reward = new Array(this.numPlayer).fill(0);
+        if (state === this.numEnd) {
+            reward[(turns)%this.numPlayer] = 1;
+        } 
+        return reward;
     }
 
     // return all children states
@@ -70,8 +61,8 @@ export class NimGameRule implements GameRule<number> {
         if (this.isEnd(state)) {
             return result;
         }
-        for (var newState = state + this.gameSetting.minCall;
-                newState <= state + this.gameSetting.maxCall && newState <= this.gameSetting.numEnd;
+        for (var newState = state + this.minCall;
+                newState <= state + this.maxCall && newState <= this.numEnd;
                 newState++) {
             result.push(newState);
         }
@@ -83,10 +74,10 @@ export class NimGameRule implements GameRule<number> {
         if (this.isEnd(state)) {
             return;
         }
-        const pickMax = Math.min(state + this.gameSetting.maxCall,
-                this.gameSetting.numEnd);
-        const pickMin = Math.min(state + this.gameSetting.minCall,
-                this.gameSetting.numEnd);
+        const pickMax = Math.min(state + this.maxCall,
+                this.numEnd);
+        const pickMin = Math.min(state + this.minCall,
+                this.numEnd);
         const pickState = pickMin + Math.floor((pickMax - pickMin + 1)*Math.random())
         return pickState;
     }

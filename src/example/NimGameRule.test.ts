@@ -1,7 +1,7 @@
 import { NimGameRule } from "./NimGameRule";
 import { MonteCarloSearchGraph } from "../MonteCarloSearchGraph";
 
-const nimGameRule = new NimGameRule();
+const nimGameRule = new NimGameRule(3, 3, 31);
 const sg = new MonteCarloSearchGraph(0, nimGameRule);
 
 const pick = sg.monteCarloSearch(1000);

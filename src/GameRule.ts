@@ -10,6 +10,8 @@ export interface GameRule<GameState> {
    //  prevPlayer: (state: GameState, player: number) => number;
     // True is the game is end.
     isEnd: (state: GameState) => boolean;
+    // initial state
+    initialState: GameState;
     // Reward of the game end. If not the game is not finished, return zero array.    
     getReward: (state: GameState) => number[];
     // Reward viewed on n turns before.
