@@ -1,7 +1,12 @@
 import { GameRule } from "../GameRule";
 
 
-export class NimGameRule implements GameRule<number> {
+export interface NimGameState {
+    counted: number;
+    player: number;
+}
+
+export class NimGameRule implements GameRule<NimGameState> {
     maxCall: number;
     numPlayer: number;
     numEnd: number;
@@ -14,71 +19,73 @@ export class NimGameRule implements GameRule<number> {
     }
 
     get initialState() {
-        return 0;
+        return {
+            counted: 0,
+            player: this.numPlayer-1
+        };
     }
 
-    getKey(state: number) {
-        return state.toString();
+    getKey(state: NimGameState): string {
+        return `${state.player.toString()}:${state.counted.toString()}`;
     }
 
-    nextPlayer(state: number, player: number) {
-        return (player + 1)%(this.numPlayer);
+    isEnd(state: NimGameState): boolean {
+        return state.counted === this.numEnd;
     }
 
-    prevPlayer(state: number, player: number) {
-        return (player - 1 + this.numPlayer)%this.numPlayer;
-    }
+    getPlayer(state: NimGameState):number {
+        return state.player;
+    };
 
-    isEnd(state: number): boolean {
-        return state === this.numEnd;
-    }
-    
-    isValid(state: number): boolean {
-        return state <= this.numEnd;
-    }
+    getPrevPlayer(state: NimGameState): number{
+        return (state.player-1)%this.numPlayer;
+    };
 
-    getReward(state: number): number[] {
+    getNextPlayer(state: NimGameState): number{
+        return (state.player+1)%this.numPlayer;
+    };
+
+    getReward(state: NimGameState): number[] {
         const reward = new Array(this.numPlayer).fill(0);
-        if (state === this.numEnd) {
-            reward[0] = 1;
+        if (state.counted === this.numEnd) {
+            reward[state.player] = 1;
             return reward;
         } else {
             return reward;
         }
     }
 
-    getPrevReward(state: number, turns: number): number[] {
-        const reward = new Array(this.numPlayer).fill(0);
-        if (state === this.numEnd) {
-            reward[(turns)%this.numPlayer] = 1;
-        } 
-        return reward;
-    }
-
     // return all children states
-    getChildren(state: number): number[] {
-        const result: number[] = [];
+    getChildren(state: NimGameState): NimGameState[] {
+        const result: NimGameState[] = [];
         if (this.isEnd(state)) {
             return result;
         }
-        for (var newState = state + this.minCall;
-                newState <= state + this.maxCall && newState <= this.numEnd;
-                newState++) {
+        for (var newCounted = state.counted + this.minCall;
+                newCounted <= state.counted + this.maxCall && newCounted <= this.numEnd;
+                newCounted++) {
+            const newState: NimGameState = {
+                counted: newCounted,
+                player: (state.player + 1)%this.numPlayer
+            }
             result.push(newState);
         }
         return result;
     }
 
     // return one random child state
-    getRandomChild(state: number): number|undefined {
+    getRandomChild(state: NimGameState): NimGameState|undefined {
         if (this.isEnd(state)) {
             return;
         }
-        const pickMax = Math.min(state + this.maxCall,
+        const pickMax = Math.min(state.counted + this.maxCall,
                 this.numEnd);
-        const pickMin = Math.min(state + this.minCall,
+        const pickMin = Math.min(state.counted + this.minCall,
                 this.numEnd);
-        const pickState = pickMin + Math.floor((pickMax - pickMin + 1)*Math.random())
+        const pickState: NimGameState = {
+            counted: pickMin + Math.floor((pickMax - pickMin + 1)*Math.random()),
+            player: (state.player + 1)%this.numPlayer
+        }
         return pickState;
     }
 }
