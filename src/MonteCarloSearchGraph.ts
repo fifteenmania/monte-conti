@@ -51,8 +51,9 @@ export class MonteCarloSearchGraph<GameState> {
         if (childNode.visitCount === 0) {
             return Infinity;
         }
+        const childPlayer = this.gameRule.getPlayer(childNode.gameState);
         const confidence = Math.sqrt(2*Math.log2(parentNode.visitCount)/childNode.visitCount)
-        const valueScore = childNode.rewardCount[0]/childNode.visitCount;
+        const valueScore = childNode.rewardCount[childPlayer]/childNode.visitCount;
         return valueScore + confidence;
     }
 
@@ -63,48 +64,48 @@ export class MonteCarloSearchGraph<GameState> {
     }
 
     // Return final state and its depth
-    randomPlayRec(state: GameState, depth: number): [GameState, number] {
+    randomPlayRec(state: GameState, depth: number): number[] {
         const childState = this.gameRule.getRandomChild(state);
         if (childState === undefined) {
-            return [state, depth];
+            return this.gameRule.getReward(state);
         } else {
             return this.randomPlayRec(childState, depth+1);
         }
     }
 
-    randomPlay(state: GameState): [GameState, number] {
+    randomPlay(state: GameState): number[] {
         return this.randomPlayRec(state, 0);
     }
 
     // Return final game state(end) and its depth from caller.
-    monteCarloSearchRec(curNode: SearchNode<GameState>): [GameState, number] {
+    monteCarloSearchRec(curNode: SearchNode<GameState>): number[] {
+        const key = this.gameRule.getKey(curNode.gameState)
         if (curNode.isLeaf()) {
             if (this.gameRule.isEnd(curNode.gameState)) {
                 const reward = this.gameRule.getReward(curNode.gameState);
                 curNode.addReward(reward);
-                console.log(`Selection (${curNode.gameState}): Reached end. Get ${reward}.`)
-                return [curNode.gameState, 1];
+                console.log(`Selection (${key}): Reached end. Get ${reward}.`)
+                return reward;
             } else {
                 this.appendChildren(curNode);
-                console.log(`Expansion (${curNode.gameState})`)
-                const [finalState, depth] = this.randomPlay(curNode.gameState);
-                const reward = this.gameRule.getPrevReward(finalState, depth);
+                console.log(`Expansion (${this.gameRule.getKey(curNode.gameState)})`)
+                const reward = this.randomPlay(curNode.gameState);
                 curNode.addReward(reward);
-                console.log(`Rollout (${curNode.gameState}): End at ${finalState}. Get ${reward}`)
-                return [finalState, depth+1];
+                console.log(`Rollout (${key}): Get ${reward}`)
+                return reward;
             }
         } else {
             const nextNode = this.getNextNode(curNode);
-            console.log(`Selection (${curNode.gameState}): Search ${nextNode.gameState}`)
-            const [finalState, depth] = this.monteCarloSearchRec(nextNode);
-            const reward = this.gameRule.getPrevReward(finalState, depth);
+            console.log(`Selection (${key}): Search ${this.gameRule.getKey(nextNode.gameState)}`)
+            const reward = this.monteCarloSearchRec(nextNode);
             curNode.addReward(reward);
-            console.log(`Backprop to (${curNode.gameState}): From ${finalState} of depth ${depth}. Get ${reward}`)
-            return [finalState, depth+1];
+            console.log(`Backprop to (${key}): Get ${reward}`)
+            return reward
         }
     }
 
     monteCarloSearch(maxIter: number): GameState {
+        console.log(`Starting From Root ${this.gameRule.getKey(this.root.gameState)}`)
         if (this.gameRule.isEnd(this.root.gameState)) {
             // Trivial case. (root is gameover)
             return this.root.gameState
@@ -113,7 +114,7 @@ export class MonteCarloSearchGraph<GameState> {
             console.log(`iteration ${iter+1} ---------`)
             this.monteCarloSearchRec(this.root);
         }
-        const rewardRate = this.root.children.map((item) => item.rewardRate[0])
+        const rewardRate = this.root.children.map((item) => item.rewardRate[this.gameRule.getPlayer(item.gameState)])
         const maxIdx = findMaxIdx(rewardRate);
         return this.root.children[maxIdx].gameState;
     }
