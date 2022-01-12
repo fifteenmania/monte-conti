@@ -1,7 +1,9 @@
 # monte-conti
 ## Description
 monte-conti is a typescript based monte-carlo acyclic graph search algorithm for multiplayer games. It can be used in any turn-based strategic multiplayer games.  
-It is designed to used for simple webgame AI. Thus, this library includes only a few features for small bundle size, while giving reasonable decisions without any prior knowledge of the game.
+It is designed to used for simple webgame AI. Thus, this library includes only a few features for small bundle size, while giving reasonable decisions without any prior knowledge of the game.  
+Implementation detailes are followed from *[Enhancements for Multi-Player
+Monte-Carlo Tree Search](https://link.springer.com/chapter/10.1007/978-3-642-17928-0_22)* without progresive history improvements. Uses UCT1 based node selection.
 
 ## Defining Your Game Rule
 ### GameState
@@ -14,27 +16,28 @@ Second, you should define a game rule object that implements `GameRule<GameState
 ```js
 export interface GameRule<GameState> {
     numPlayer: number;
+    initialState: GameState;
     getKey: (state: GameState) => string;
+    getPlayer: (state: GameState) => number;
     isEnd: (state: GameState) => boolean;
     getReward: (state: GameState) => number[];
-    getPrevReward: (state: GameState, turns: number) => number[];
     getChildren: (state: GameState) => GameState[];
     getRandomChild: (state: GameState) => GameState| undefined;
 }
 ```
-- `numPlayer` is the number of players.
+- `numPlayer: number` is the number of players.
+- `initialState: GameState` is the initial state of the game.
 - `getKey: (state: GameState) => string` is a hash function for your gameState. It should give unique string for each game state.
+- `getPlayer: (state: GameState) => number` gives current player to play. Players are specified as integer 0, 1, 2, ... which is matched to index of the reward array.
 - `isEnd: (state: GameState) => boolean` returns true if input gamestate is end of the game. Else, return false.
-- `getReward: (state: GameState) => number[]` gives reward of the state for each players. It consist of *[reward for player in this state, reward for the next player, reward for the next next player, ...]*   
-For example, if it is a two-player game and the state is win state, then it should return [1, 0]. If the state not the end of the game, you should simply give [0, 0]. The reward should be scaled to stay between 0 and 1.
-- `getPrevReward: (state: GameState, turns: number) => number[]` is a reward of the state viewed on n `turns` before. 
+- `getReward: (state: GameState) => number[]` gives reward of the state for each players. It consist of *[reward for player 0, reward for the player 1, reward for player 2, ...]* 
 - `getChildren: (state: GameState) => GameState[]` gives a complete array of the available next game states. 
 - `getRandomChild: (state: GameState) => GameState | undefined` gives a random next state. If it is the end of the game so that no more move is available, it returns `undefined`.
 
 ## Example Game Rules
 ### Nim Game
-Originally, nim game is a two-player game with pile of objects. Each player can remove 1~3 of objects from pile. The player who took last object win the game. You can get more information on [wiki](https://en.wikipedia.org/wiki/Nim).  
-Here, we will consider 3-player nim game with only one pile of 31 objects. Each player can remove 1~3 objects. Complete code is available in `src/example/NimGameRule.ts`.
+Originally, nim game is a two-player game with pile of objects. Each player can remove 1 to 3 of objects from pile. The player who took last object win the game. You can get more information on [wiki](https://en.wikipedia.org/wiki/Nim).   
+Here, we will consider 3-player nim game with only one pile of 31 objects. Each player can remove 1 to 3 objects. Complete code is available in `src/example/NimGameRule.ts`.
 
 #### Rule Definition
 We chose the game state as number of obeject removed from pile. Starting from 0, it is incremented 1, 2, or 3 at each turn. If it reach 31, the player who played in that turn earn 1 point. Others get 0 point.
