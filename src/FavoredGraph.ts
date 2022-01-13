@@ -1,16 +1,16 @@
 import {SearchNode} from './SearchNode'
 import {GameRule} from './GameRule'
+import { findMaxIdx, vecVecDot } from './utils';
 
-function findMaxIdx(arr: number[]) {
-    const maxValue = arr.reduce((maxVal, curVal) => maxVal < curVal? curVal: maxVal, 0);
-    return arr.findIndex((value) => value === maxValue);
-}
-
-
-export class MonteCarloSearchGraph<GameState> {
+export class FavoredGraph<GameState> {
     root: SearchNode<GameState>;
     gameRule: GameRule<GameState>;
     searchDict: Map<string, SearchNode<GameState>>;
+    amityMatrix: number[][] = [
+        [1, 0, 0.8],
+        [0, 1, 0],
+        [0.2, 0, 1]
+    ]
     constructor(initaialState: GameState, gameRule: GameRule<GameState>) {
         this.gameRule = gameRule;
         this.root = new SearchNode(initaialState, this.gameRule.numPlayer);
@@ -51,9 +51,10 @@ export class MonteCarloSearchGraph<GameState> {
         if (childNode.visitCount === 0) {
             return Infinity;
         }
-        const childPlayer = this.gameRule.getPlayer(parentNode.gameState);
+        const parentPlayer = this.gameRule.getPlayer(parentNode.gameState);
+        const amity = this.amityMatrix[parentPlayer]
         const confidence = Math.sqrt(2*Math.log2(parentNode.visitCount)/childNode.visitCount)
-        const valueScore = childNode.rewardCount[childPlayer]/childNode.visitCount;
+        const valueScore = vecVecDot(childNode.rewardCount, amity)/childNode.visitCount;
         return valueScore + confidence;
     }
 
@@ -114,7 +115,9 @@ export class MonteCarloSearchGraph<GameState> {
             console.log(`iteration ${iter+1} ---------`)
             this.monteCarloSearchRec(this.root);
         }
-        const rewardRate = this.root.children.map((item) => item.rewardRate[this.gameRule.getPlayer(item.gameState)])
+        const player = this.gameRule.getPlayer(this.root.gameState)
+        const amity = this.amityMatrix[player];
+        const rewardRate = this.root.children.map((item) => vecVecDot(item.rewardCount, amity))
         const maxIdx = findMaxIdx(rewardRate);
         return this.root.children[maxIdx].gameState;
     }

@@ -21,7 +21,7 @@ export class NimGameRule implements GameRule<NimGameState> {
     get initialState() {
         return {
             counted: 0,
-            player: this.numPlayer-1
+            player: 0
         };
     }
 
@@ -38,7 +38,7 @@ export class NimGameRule implements GameRule<NimGameState> {
     };
 
     getPrevPlayer(state: NimGameState): number{
-        return (state.player-1)%this.numPlayer;
+        return (state.player-1+this.numPlayer)%this.numPlayer;
     };
 
     getNextPlayer(state: NimGameState): number{
@@ -48,7 +48,7 @@ export class NimGameRule implements GameRule<NimGameState> {
     getReward(state: NimGameState): number[] {
         const reward = new Array(this.numPlayer).fill(0);
         if (state.counted === this.numEnd) {
-            reward[state.player] = 1;
+            reward[this.getPrevPlayer(state)] = 1;
             return reward;
         } else {
             return reward;
