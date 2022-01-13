@@ -25,6 +25,13 @@ export class NimGameRule implements GameRule<NimGameState> {
         };
     }
 
+    getRandomInitialState() {
+        return {
+            counted: 0,
+            player: Math.floor(Math.random()*this.numPlayer)
+        }
+    }
+
     getKey(state: NimGameState): string {
         return `${state.player.toString()}:${state.counted.toString()}`;
     }

@@ -6,13 +6,10 @@ export class FavoredGraph<GameState> {
     root: SearchNode<GameState>;
     gameRule: GameRule<GameState>;
     searchDict: Map<string, SearchNode<GameState>>;
-    amityMatrix: number[][] = [
-        [1, 0, 0.8],
-        [0, 1, 0],
-        [0.2, 0, 1]
-    ]
-    constructor(initaialState: GameState, gameRule: GameRule<GameState>) {
+    amityMatrix: number[][];
+    constructor(initaialState: GameState, gameRule: GameRule<GameState>, amityMatrix: number[][]) {
         this.gameRule = gameRule;
+        this.amityMatrix = amityMatrix;
         this.root = new SearchNode(initaialState, this.gameRule.numPlayer);
         this.searchDict = new Map<string, SearchNode<GameState>>();
         this.searchDict.set(gameRule.getKey(initaialState), this.root);

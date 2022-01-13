@@ -3,16 +3,20 @@ import { MonteCarloSearchGraph } from "../MonteCarloSearchGraph";
 import {FavoredGraph} from "../FavoredGraph"
 
 const nimGameRule = new NimGameRule(3, 3, 31);
-const initial = nimGameRule.initialState;
-const testState: NimGameState = {
-    counted: 0,
-    player: 0
-}
+const results = []
+for (var corr = 0; corr < 1; corr += 0.1) {
+    const amityMatrix: number[][] = [
+        [1, corr, 0],
+        [0.1, 1, 0],
+        [0, 0, 1]
+    ]
+    const initial = nimGameRule.initialState;
+    const sg = new FavoredGraph(initial, nimGameRule, amityMatrix);
+    const pick = sg.monteCarloSearch(30000);
+    console.log(pick);
+    console.log(sg.root.children.map((item) => item.rewardRate))
+    console.log(sg.root.rewardRate)
+    results.push(sg.root.rewardRate)
+}   
+console.log(results);
 
-const sg = new FavoredGraph(testState, nimGameRule);
-
-const pick = sg.monteCarloSearch(1000);
-console.log(pick);
-
-console.log(sg.root.children.map((item) => item.rewardRate))
-console.log(sg.root.rewardRate)
