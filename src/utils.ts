@@ -10,3 +10,15 @@ export function vecVecDot(arr1:number[], arr2: number[]):number {
     }
     return result;
 }
+
+export function nomalizeRows(mat: number[][]): number[][] {
+    return mat.map((row) => {
+            const sum = row.reduce((sum, value) => sum+value);
+            return row.map((value) => value/sum);
+        }
+    )
+}
+
+export function matToString(mat: number[][]): string {
+    return mat.map((row) => row.join(', ')).join('\n')
+}
