@@ -8,7 +8,7 @@ const results = []
 for (var corr = 0; corr < 1; corr += 0.1) {
     const amityMatrix: number[][] = [
         [1, 0, 0],
-        [0, 1, corr],
+        [0, 1, 0],
         [0, 0, 1]
     ]
     const initial = nimGameRule.initialState;

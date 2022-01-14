@@ -1,14 +1,12 @@
+import { FavoredGraph } from "./FavoredGraph";
 
 export class People {
-    amity: number[];
-    order: number
-    constructor(order: number) {
+    order: number;
+    amity: number[][];
+    constructor(order: number, amity: number[][]) {
         this.order = order;
-        this.amity = new Array(3).fill(0);
-        this.amity[order] = 1;
+        this.amity = amity;
     }
 
-    getPersonalReward(reward: number[], amity: number[]) {
-        return reward.reduce((sum, val, idx) => sum + val*amity[idx], 0);
-    }
+    
 }
