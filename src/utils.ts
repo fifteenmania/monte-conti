@@ -11,7 +11,12 @@ export function vecVecDot(arr1:number[], arr2: number[]):number {
     return result;
 }
 
-export function nomalizeRows(mat: number[][]): number[][] {
+export function normalize(vec: number[]): number[] {
+    const sum = vec.reduce((sum, val) => sum+val);
+    return vec.map((val) => val/sum);
+}
+
+export function normalizeRows(mat: number[][]): number[][] {
     return mat.map((row) => {
             const sum = row.reduce((sum, value) => sum+value);
             return row.map((value) => value/sum);

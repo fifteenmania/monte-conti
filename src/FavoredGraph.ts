@@ -82,34 +82,34 @@ export class FavoredGraph<GameState> {
             if (this.gameRule.isEnd(curNode.gameState)) {
                 const reward = this.gameRule.getReward(curNode.gameState);
                 curNode.addReward(reward);
-                console.log(`Selection (${key}): Reached end. Get ${reward}.`)
+                //console.log(`Selection (${key}): Reached end. Get ${reward}.`)
                 return reward;
             } else {
                 this.appendChildren(curNode);
-                console.log(`Expansion (${this.gameRule.getKey(curNode.gameState)})`)
+                //console.log(`Expansion (${this.gameRule.getKey(curNode.gameState)})`)
                 const reward = this.randomPlay(curNode.gameState);
                 curNode.addReward(reward);
-                console.log(`Rollout (${key}): Get ${reward}`)
+                //console.log(`Rollout (${key}): Get ${reward}`)
                 return reward;
             }
         } else {
             const nextNode = this.getNextNode(curNode);
-            console.log(`Selection (${key}): Search ${this.gameRule.getKey(nextNode.gameState)}`)
+            //console.log(`Selection (${key}): Search ${this.gameRule.getKey(nextNode.gameState)}`)
             const reward = this.monteCarloSearchRec(nextNode);
             curNode.addReward(reward);
-            console.log(`Backprop to (${key}): Get ${reward}`)
+            //console.log(`Backprop to (${key}): Get ${reward}`)
             return reward
         }
     }
 
     monteCarloSearch(maxIter: number): GameState {
-        console.log(`Starting From Root ${this.gameRule.getKey(this.root.gameState)}`)
+        //console.log(`Starting From Root ${this.gameRule.getKey(this.root.gameState)}`)
         if (this.gameRule.isEnd(this.root.gameState)) {
             // Trivial case. (root is gameover)
             return this.root.gameState
         }
         for (var iter=0; iter < maxIter; iter++) {
-            console.log(`iteration ${iter+1} ---------`)
+            //console.log(`iteration ${iter+1} ---------`)
             this.monteCarloSearchRec(this.root);
         }
         const player = this.gameRule.getPlayer(this.root.gameState)

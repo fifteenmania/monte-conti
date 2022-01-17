@@ -84,22 +84,22 @@ export class MonteCarloSearchGraph<GameState> {
             if (this.gameRule.isEnd(curNode.gameState)) {
                 const reward = this.gameRule.getReward(curNode.gameState);
                 curNode.addReward(reward);
-                console.log(`Selection (${key}): Reached end. Get ${reward}.`)
+                //console.log(`Selection (${key}): Reached end. Get ${reward}.`)
                 return reward;
             } else {
                 this.appendChildren(curNode);
-                console.log(`Expansion (${this.gameRule.getKey(curNode.gameState)})`)
+                //console.log(`Expansion (${this.gameRule.getKey(curNode.gameState)})`)
                 const reward = this.randomPlay(curNode.gameState);
                 curNode.addReward(reward);
-                console.log(`Rollout (${key}): Get ${reward}`)
+                //console.log(`Rollout (${key}): Get ${reward}`)
                 return reward;
             }
         } else {
             const nextNode = this.getNextNode(curNode);
-            console.log(`Selection (${key}): Search ${this.gameRule.getKey(nextNode.gameState)}`)
+            //console.log(`Selection (${key}): Search ${this.gameRule.getKey(nextNode.gameState)}`)
             const reward = this.monteCarloSearchRec(nextNode);
             curNode.addReward(reward);
-            console.log(`Backprop to (${key}): Get ${reward}`)
+            //console.log(`Backprop to (${key}): Get ${reward}`)
             return reward
         }
     }
@@ -111,7 +111,7 @@ export class MonteCarloSearchGraph<GameState> {
             return this.root.gameState
         }
         for (var iter=0; iter < maxIter; iter++) {
-            console.log(`iteration ${iter+1} ---------`)
+            //console.log(`iteration ${iter+1} ---------`)
             this.monteCarloSearchRec(this.root);
         }
         const rewardRate = this.root.children.map((item) => item.rewardRate[this.gameRule.getPlayer(item.gameState)])
